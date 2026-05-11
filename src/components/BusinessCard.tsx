@@ -1,9 +1,16 @@
 "use client";
 
 import type { FlattenedBusiness } from "@/lib/flatten";
-import { OfficerRow } from "./OfficerRow";
+import type { FlattenedOfficer } from "@/lib/types";
+import { OfficerRow, type EnrichState } from "./OfficerRow";
 
-export function BusinessCard({ business }: { business: FlattenedBusiness }) {
+type Props = {
+  business: FlattenedBusiness;
+  enrichedById: Map<string, EnrichState>;
+  onEnrich: (officer: FlattenedOfficer) => void;
+};
+
+export function BusinessCard({ business, enrichedById, onEnrich }: Props) {
   return (
     <article className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-5 shadow-sm">
       <header className="mb-4">
@@ -62,7 +69,12 @@ export function BusinessCard({ business }: { business: FlattenedBusiness }) {
         </div>
         <div className="space-y-2">
           {business.officers.map((o) => (
-            <OfficerRow key={o.id} officer={o} />
+            <OfficerRow
+              key={o.id}
+              officer={o}
+              state={enrichedById.get(o.id)}
+              onEnrich={onEnrich}
+            />
           ))}
         </div>
       </div>

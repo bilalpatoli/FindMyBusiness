@@ -11,6 +11,12 @@ import {
   type BulkInput,
   type BulkResult,
 } from "@/lib/bulkRunner";
+import {
+  downloadCsv,
+  entriesFromBulk,
+  phoneCsvFilename,
+  toPhoneRows,
+} from "@/lib/exportPhones";
 
 type Phase = "idle" | "ready" | "running" | "done";
 
@@ -86,6 +92,16 @@ export default function BulkPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  }
+
+  const phoneRows = useMemo(() => toPhoneRows(entriesFromBulk(results)), [results]);
+
+  function handleDownloadPhones() {
+    if (phoneRows.length === 0) return;
+    downloadCsv(
+      phoneRows as unknown as Record<string, string>[],
+      phoneCsvFilename("findmybusiness-bulk"),
+    );
   }
 
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
@@ -172,7 +188,7 @@ Smith Roofing LLC,FL`}
                     {stats.success} success • {stats.no_match} no match • {stats.error} error
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap gap-2 shrink-0">
                   {phase === "done" && (
                     <>
                       <button
@@ -180,6 +196,18 @@ Smith Roofing LLC,FL`}
                         className="rounded-md border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
                       >
                         New upload
+                      </button>
+                      <button
+                        onClick={handleDownloadPhones}
+                        disabled={phoneRows.length === 0}
+                        title={
+                          phoneRows.length === 0
+                            ? "No enriched phones available"
+                            : `${phoneRows.length} phones across ${results.filter((r) => r.enriched?.person?.phones?.length).length} officers`
+                        }
+                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-zinc-400 disabled:cursor-not-allowed"
+                      >
+                        Export phones ({phoneRows.length})
                       </button>
                       <button
                         onClick={handleDownloadCsv}
