@@ -1,4 +1,5 @@
 import { flattenResponse, type FlattenedBusiness } from "./flatten";
+import { latestPhone } from "./exportPhones";
 import type { EnrichResponse, FlattenedOfficer } from "./types";
 
 export const BULK_ROW_LIMIT = 200;
@@ -160,29 +161,34 @@ export async function runBulk(
 }
 
 export function resultsToCsvRows(results: BulkResult[]): Record<string, string>[] {
-  return results.map((r) => ({
-    input_business_name: r.input.businessName,
-    input_state: r.input.state,
-    status: r.status,
-    error: r.error ?? "",
-    matched_company: r.matchedCompany ?? "",
-    matched_address: r.matchedAddress ?? "",
-    officer_name: r.officer?.fullName ?? "",
-    officer_title: r.officer?.title ?? "",
-    officer_age: r.enriched?.person?.age ? String(r.enriched.person.age) : "",
-    officer_phones: (r.enriched?.person?.phones ?? []).map((p) => p.number).join("; "),
-    officer_phone_types: (r.enriched?.person?.phones ?? []).map((p) => p.type ?? "").join("; "),
-    officer_emails: (r.enriched?.person?.emails ?? []).map((e) => e.email).join("; "),
-    officer_recent_address: (() => {
-      const a = r.enriched?.person?.addresses?.[0];
-      if (!a) return "";
-      return [
-        [a.street, a.unit].filter(Boolean).join(" "),
-        [a.city, a.state, a.zip].filter(Boolean).join(", "),
-      ]
-        .filter(Boolean)
-        .join(", ");
-    })(),
-    identity_score: r.enriched?.identityScore !== undefined ? String(r.enriched.identityScore) : "",
-  }));
+  return results.map((r) => {
+    const phone = latestPhone(r.enriched?.person?.phones);
+    return {
+      input_business_name: r.input.businessName,
+      input_state: r.input.state,
+      status: r.status,
+      error: r.error ?? "",
+      matched_company: r.matchedCompany ?? "",
+      matched_address: r.matchedAddress ?? "",
+      officer_name: r.officer?.fullName ?? "",
+      officer_title: r.officer?.title ?? "",
+      officer_age: r.enriched?.person?.age ? String(r.enriched.person.age) : "",
+      officer_phone: phone?.number ?? "",
+      officer_phone_type: phone?.type ?? "",
+      officer_phone_last_seen: phone?.lastReportedDate ?? "",
+      officer_emails: (r.enriched?.person?.emails ?? []).map((e) => e.email).join("; "),
+      officer_recent_address: (() => {
+        const a = r.enriched?.person?.addresses?.[0];
+        if (!a) return "";
+        return [
+          [a.street, a.unit].filter(Boolean).join(" "),
+          [a.city, a.state, a.zip].filter(Boolean).join(", "),
+        ]
+          .filter(Boolean)
+          .join(", ");
+      })(),
+      identity_score:
+        r.enriched?.identityScore !== undefined ? String(r.enriched.identityScore) : "",
+    };
+  });
 }
