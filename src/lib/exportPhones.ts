@@ -1,7 +1,24 @@
 import Papa from "papaparse";
-import type { EnrichResponse, FlattenedOfficer } from "./types";
+import type { EnrichPhone, EnrichResponse, FlattenedOfficer } from "./types";
 import type { FlattenedBusiness } from "./flatten";
 import type { BulkResult } from "./bulkRunner";
+
+// EnformionGo's lastReportedDate comes as US-format "M/D/YYYY".
+function parseLastReported(date?: string): number {
+  if (!date) return 0;
+  const parts = date.split("/");
+  if (parts.length !== 3) return 0;
+  const [m, d, y] = parts.map(Number);
+  if (!y || !m || !d) return 0;
+  return new Date(y, m - 1, d).getTime();
+}
+
+export function latestPhone(phones: EnrichPhone[] | undefined): EnrichPhone | undefined {
+  if (!phones || phones.length === 0) return undefined;
+  return phones.reduce((best, p) =>
+    parseLastReported(p.lastReportedDate) > parseLastReported(best.lastReportedDate) ? p : best,
+  );
+}
 
 export type PhoneExportRow = {
   phone: string;
@@ -22,19 +39,18 @@ export type EnrichedOfficerEntry = {
 export function toPhoneRows(entries: EnrichedOfficerEntry[]): PhoneExportRow[] {
   const rows: PhoneExportRow[] = [];
   for (const e of entries) {
-    const phones = e.enriched.person?.phones ?? [];
+    const p = latestPhone(e.enriched.person?.phones);
+    if (!p) continue;
     const primaryEmail = e.enriched.person?.emails?.[0]?.email ?? "";
-    for (const p of phones) {
-      rows.push({
-        phone: p.number,
-        type: p.type ?? "",
-        connected: p.isConnected === undefined ? "" : String(p.isConnected),
-        business_name: e.businessName,
-        officer_name: e.officer.fullName,
-        officer_title: e.officer.title ?? "",
-        primary_email: primaryEmail,
-      });
-    }
+    rows.push({
+      phone: p.number,
+      type: p.type ?? "",
+      connected: p.isConnected === undefined ? "" : String(p.isConnected),
+      business_name: e.businessName,
+      officer_name: e.officer.fullName,
+      officer_title: e.officer.title ?? "",
+      primary_email: primaryEmail,
+    });
   }
   return rows;
 }

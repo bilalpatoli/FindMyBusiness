@@ -1,6 +1,7 @@
 "use client";
 
 import type { FlattenedOfficer, EnrichResponse } from "@/lib/types";
+import { latestPhone } from "@/lib/exportPhones";
 
 export type EnrichState = {
   loading: boolean;
@@ -90,31 +91,40 @@ export function OfficerRow({ officer, state, onEnrich }: Props) {
             )}
           </div>
 
-          {person.phones && person.phones.length > 0 && (
-            <div>
-              <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1">
-                Phones
+          {(() => {
+            const p = latestPhone(person.phones);
+            if (!p) return null;
+            const olderCount = (person.phones?.length ?? 0) - 1;
+            return (
+              <div>
+                <div className="text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1">
+                  Latest phone
+                </div>
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <a
+                    href={`tel:${p.number}`}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    {p.number}
+                  </a>
+                  {p.type && (
+                    <span className="text-[10px] uppercase tracking-wide text-zinc-500">{p.type}</span>
+                  )}
+                  {p.isConnected === false && (
+                    <span className="text-[10px] uppercase tracking-wide text-red-500">disconnected</span>
+                  )}
+                  {p.lastReportedDate && (
+                    <span className="text-[10px] text-zinc-400">last seen {p.lastReportedDate}</span>
+                  )}
+                </div>
+                {olderCount > 0 && (
+                  <div className="text-[10px] text-zinc-400 mt-1">
+                    + {olderCount} older phone{olderCount === 1 ? "" : "s"} hidden — see raw response
+                  </div>
+                )}
               </div>
-              <ul className="space-y-1">
-                {person.phones.map((p, i) => (
-                  <li key={p.number + i} className="flex items-baseline gap-2 flex-wrap">
-                    <a href={`tel:${p.number}`} className="text-blue-600 hover:underline font-medium">
-                      {p.number}
-                    </a>
-                    {p.type && (
-                      <span className="text-[10px] uppercase tracking-wide text-zinc-500">{p.type}</span>
-                    )}
-                    {p.isConnected === false && (
-                      <span className="text-[10px] uppercase tracking-wide text-red-500">disconnected</span>
-                    )}
-                    {p.lastReportedDate && (
-                      <span className="text-[10px] text-zinc-400">last seen {p.lastReportedDate}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            );
+          })()}
 
           {person.emails && person.emails.length > 0 && (
             <div>
