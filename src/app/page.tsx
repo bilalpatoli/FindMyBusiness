@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { SearchForm } from "@/components/SearchForm";
 import { BusinessCard } from "@/components/BusinessCard";
 import { flattenResponse, type FlattenedBusiness } from "@/lib/flatten";
@@ -38,13 +39,21 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <div className="mx-auto max-w-4xl px-6 py-10">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Find My Business
-          </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Search a business name + state, see registered owners and officers, click <span className="font-medium">Enrich</span> to pull contact info.
-          </p>
+        <header className="mb-8 flex items-baseline justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+              Find My Business
+            </h1>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              Search a business name + state, see registered owners and officers, click <span className="font-medium">Enrich</span> to pull contact info.
+            </p>
+          </div>
+          <Link
+            href="/bulk"
+            className="text-sm text-blue-600 hover:underline shrink-0"
+          >
+            Bulk upload →
+          </Link>
         </header>
 
         <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm mb-8">
