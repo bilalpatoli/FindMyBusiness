@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider, UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,17 +19,28 @@ export const metadata: Metadata = {
   description: "Look up business owners and contact info via the EnformionGo API.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
+
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      >
+        <body className="min-h-full flex flex-col">
+          {userId && (
+            <div className="fixed top-3 right-4 z-50">
+              <UserButton />
+            </div>
+          )}
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
