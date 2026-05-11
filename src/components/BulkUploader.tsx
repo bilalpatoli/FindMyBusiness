@@ -40,7 +40,12 @@ export function BulkUploader({ disabled, onRowsParsed }: Props) {
           for (const [k, v] of Object.entries(raw)) {
             normalized[normalizeKey(k)] = (v ?? "").trim();
           }
-          const businessName = normalized.businessname ?? normalized.name ?? normalized.company ?? "";
+          const businessName =
+            normalized.businessname ??
+            normalized.name ??
+            normalized.company ??
+            normalized.title ??
+            "";
           const state = normalized.state ?? normalized.st ?? "";
           if (!businessName) continue;
           rows.push({ businessName, state });
