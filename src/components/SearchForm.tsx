@@ -1,23 +1,9 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { US_STATES } from "@/lib/states";
 
-const US_STATES = [
-  ["", "All states"],
-  ["AL", "Alabama"], ["AK", "Alaska"], ["AZ", "Arizona"], ["AR", "Arkansas"],
-  ["CA", "California"], ["CO", "Colorado"], ["CT", "Connecticut"], ["DE", "Delaware"],
-  ["FL", "Florida"], ["GA", "Georgia"], ["HI", "Hawaii"], ["ID", "Idaho"],
-  ["IL", "Illinois"], ["IN", "Indiana"], ["IA", "Iowa"], ["KS", "Kansas"],
-  ["KY", "Kentucky"], ["LA", "Louisiana"], ["ME", "Maine"], ["MD", "Maryland"],
-  ["MA", "Massachusetts"], ["MI", "Michigan"], ["MN", "Minnesota"], ["MS", "Mississippi"],
-  ["MO", "Missouri"], ["MT", "Montana"], ["NE", "Nebraska"], ["NV", "Nevada"],
-  ["NH", "New Hampshire"], ["NJ", "New Jersey"], ["NM", "New Mexico"], ["NY", "New York"],
-  ["NC", "North Carolina"], ["ND", "North Dakota"], ["OH", "Ohio"], ["OK", "Oklahoma"],
-  ["OR", "Oregon"], ["PA", "Pennsylvania"], ["RI", "Rhode Island"], ["SC", "South Carolina"],
-  ["SD", "South Dakota"], ["TN", "Tennessee"], ["TX", "Texas"], ["UT", "Utah"],
-  ["VT", "Vermont"], ["VA", "Virginia"], ["WA", "Washington"], ["WV", "West Virginia"],
-  ["WI", "Wisconsin"], ["WY", "Wyoming"], ["DC", "District of Columbia"],
-] as const;
+const STATE_OPTIONS: ReadonlyArray<readonly [string, string]> = [["", "All states"], ...US_STATES];
 
 type Props = {
   onSearch: (input: { businessName: string; state: string }) => void;
@@ -60,7 +46,7 @@ export function SearchForm({ onSearch, loading }: Props) {
           onChange={(e) => setState(e.target.value)}
           className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {US_STATES.map(([code, label]) => (
+          {STATE_OPTIONS.map(([code, label]) => (
             <option key={code} value={code}>
               {label}
             </option>

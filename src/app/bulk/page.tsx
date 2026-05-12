@@ -17,6 +17,7 @@ import {
   phoneCsvFilename,
   toPhoneRows,
 } from "@/lib/exportPhones";
+import { US_STATES } from "@/lib/states";
 
 type Phase = "idle" | "ready" | "running" | "done";
 
@@ -25,6 +26,9 @@ export default function BulkPage() {
   const [inputs, setInputs] = useState<BulkInput[]>([]);
   const [results, setResults] = useState<BulkResult[]>([]);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  // "" means "use whatever's in the CSV state column" (the original behavior).
+  // Any value here overrides the CSV state for every row.
+  const [stateOverride, setStateOverride] = useState<string>("");
   // Keep a mirror of results in a ref so the per-row update callback can mutate
   // in place without stale-closure issues from the running loop.
   const resultsRef = useRef<BulkResult[]>([]);
@@ -59,8 +63,11 @@ export default function BulkPage() {
 
   async function handleStart() {
     setPhase("running");
+    const effectiveInputs: BulkInput[] = stateOverride
+      ? inputs.map((i) => ({ ...i, state: stateOverride }))
+      : inputs;
     await runBulk(
-      inputs,
+      effectiveInputs,
       (r) => {
         resultsRef.current = resultsRef.current.map((existing) =>
           existing.index === r.index ? r : existing,
@@ -145,7 +152,7 @@ Smith Roofing LLC,FL`}
 
         {phase === "ready" && (
           <section className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
               <div>
                 <div className="font-medium text-zinc-900 dark:text-zinc-100">
                   Ready to process {inputs.length} {inputs.length === 1 ? "row" : "rows"}
@@ -155,21 +162,49 @@ Smith Roofing LLC,FL`}
                   {Math.ceil(inputs.length * 1.5)}s.
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  onClick={handleReset}
-                  className="rounded-md border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleStart}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  Start processing
-                </button>
+              <div className="flex flex-wrap items-end gap-3 shrink-0">
+                <div>
+                  <label
+                    htmlFor="state-override"
+                    className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1"
+                  >
+                    State for all rows
+                  </label>
+                  <select
+                    id="state-override"
+                    value={stateOverride}
+                    onChange={(e) => setStateOverride(e.target.value)}
+                    className="rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Use state column from CSV</option>
+                    {US_STATES.map(([code, label]) => (
+                      <option key={code} value={code}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleReset}
+                    className="rounded-md border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleStart}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Start processing
+                  </button>
+                </div>
               </div>
             </div>
+            {stateOverride && (
+              <div className="mb-3 text-xs text-blue-700 dark:text-blue-300">
+                All rows will be searched in <span className="font-medium">{stateOverride}</span>, overriding the CSV state column.
+              </div>
+            )}
             <BulkResultsTable results={results} />
           </section>
         )}
