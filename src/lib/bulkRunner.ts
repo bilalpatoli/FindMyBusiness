@@ -1,5 +1,5 @@
 import { flattenResponse, type FlattenedBusiness } from "./flatten";
-import { latestPhone } from "./exportPhones";
+import { latestPhone, toE164 } from "./exportPhones";
 import type { EnrichResponse, FlattenedOfficer } from "./types";
 
 export const BULK_ROW_LIMIT = 300;
@@ -173,7 +173,7 @@ export function resultsToCsvRows(results: BulkResult[]): Record<string, string>[
       officer_name: r.officer?.fullName ?? "",
       officer_title: r.officer?.title ?? "",
       officer_age: r.enriched?.person?.age ? String(r.enriched.person.age) : "",
-      officer_phone: phone?.number ?? "",
+      officer_phone: toE164(phone?.number),
       officer_phone_type: phone?.type ?? "",
       officer_phone_last_seen: phone?.lastReportedDate ?? "",
       officer_emails: (r.enriched?.person?.emails ?? []).map((e) => e.email).join("; "),

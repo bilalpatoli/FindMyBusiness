@@ -20,8 +20,18 @@ export function latestPhone(phones: EnrichPhone[] | undefined): EnrichPhone | un
   );
 }
 
+// Normalize EnformionGo's "(408) 222-3212" format to E.164. EnformionGo data
+// is US-only, so anything that comes out as 10 digits gets +1 prepended.
+export function toE164(phone: string | undefined): string {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return phone;
+}
+
 export type PhoneExportRow = {
-  phone: string;
+  phone_number: string;
   type: string;
   connected: string;
   business_name: string;
@@ -43,7 +53,7 @@ export function toPhoneRows(entries: EnrichedOfficerEntry[]): PhoneExportRow[] {
     if (!p) continue;
     const primaryEmail = e.enriched.person?.emails?.[0]?.email ?? "";
     rows.push({
-      phone: p.number,
+      phone_number: toE164(p.number),
       type: p.type ?? "",
       connected: p.isConnected === undefined ? "" : String(p.isConnected),
       business_name: e.businessName,
