@@ -2,7 +2,7 @@ import { flattenResponse, type FlattenedBusiness } from "./flatten";
 import { latestPhone } from "./exportPhones";
 import type { EnrichResponse, FlattenedOfficer } from "./types";
 
-export const BULK_ROW_LIMIT = 200;
+export const BULK_ROW_LIMIT = 300;
 
 export type BulkInput = {
   businessName: string;
